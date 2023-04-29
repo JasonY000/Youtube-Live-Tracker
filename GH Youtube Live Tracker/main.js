@@ -1,18 +1,18 @@
-
 //!!!!!!!!!!!!!!!!!!!!!!!Input your api key!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-//const apiKey = `your_key`
+//const apiKey = `Your API Key`
 let idMap = new Map()
 let CallStartTime
 getLocalStorage()
+let allVideoObj = {}
 function setLocalStorage() {
   localStorage.setItem('channelList', JSON.stringify(Object.fromEntries(idMap)));
 }
 function getLocalStorage() {
+  if(localStorage.getItem('channelList') === null)return
   const data = new Map(Object.entries(JSON.parse(localStorage.getItem('channelList'))));
   if (!data) return;
   idMap = data
 }
-let allVideoObj = {}
 //////////////////////////////////////////////////////////
 const formPopup = document.querySelector(".popup")
 const overlay = document.querySelector('.overlay')
@@ -24,6 +24,10 @@ const formSubmit = document.querySelector('.form-submit')
 let deleteChannel = document.querySelectorAll('.delete-channel')
 const liveDiv = document.querySelector('.live-area')
 const passDiv = document.querySelector('.passed-area')
+const lookupInput = document.querySelector('.input-lookup')
+const lookupSubmit = document.querySelector('.lookup-submit')
+const searchDiv = document.querySelector('.search-div')
+const clearSearch = document.querySelector('.lookup-clear')
 //
 const upcomingDiv = document.querySelector('.upcoming-area')
 // Main page query
@@ -34,6 +38,7 @@ const btnRefresh = document.querySelector('.btn-refresh')
 formClose.addEventListener('click', closeForm)
 btnAdd.addEventListener('click', openForm)
 btnRefresh.addEventListener('click', reloadMainPage)
+formSubmit.addEventListener('click', submitForm)
 //////////////////////////////////////////////////////////
 
 //adding channel to list on start
@@ -50,15 +55,67 @@ function closeForm(e){
 function openForm(e){
   popup.style.display = 'block';
   overlay.style.display = 'block';
+  console.log(idMap);
 }
 // btn that starts the api call
 function reloadMainPage(){
   CallStartTime = readyToCall(idMap.size)
   idMap.forEach(fetchVid)
 }
-
+// clear lookup
+clearSearch.addEventListener('click', searchClear)
+function searchClear(){
+  searchDiv.innerHTML =""
+  lookupInput.value =''
+}
+//channel Lookup
+lookupSubmit.addEventListener('click', lookupAPI)
+function lookupAPI(){
+  const name = lookupInput.value
+  lookupInput.value = ''
+  fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelType=any&eventType=none&maxResults=5&q=${name}&key=${apiKey}`)
+  .then(response => {
+    if(!response.ok){
+        throw new Error(`${response.status} 403 Ran out of quota`)
+    }
+    return response.json()
+  }).then(data => {
+    const channels = manageLookup(data)
+    let html = `
+    <div class="channel-div">
+      <p class="channel-name-p" id="channel-name-p">${name}</p>
+      <button class="search-add" id=${name}>submit</button>
+    </div>
+    `
+    for(const [key,value] of Object.entries(channels)){
+      searchDiv.insertAdjacentHTML("beforeend", `
+      <div class="channel-div">
+        <p class="channel-name-p" id="channel-name-p">${key}</p>
+        <a href='https://www.youtube.com/channel/${value}' target="_blank" class='${key} view'id='${value}'>View Channel</a>
+        <button class="search-add" id='${'btn'+key}'>add</button>
+      </div>
+      `)
+      const button = document.getElementById(`${'btn'+key}`)
+      button.addEventListener('click', addFromSearch)
+    }
+  })
+}
+function manageLookup(data){
+  let infoArray = data.items
+  let managed = {}
+  for(const obj of infoArray){
+    managed[obj.snippet.channelTitle] = obj.snippet.channelId
+  }
+  return managed
+}
+function addFromSearch(e){
+  const parent = e.target.closest('.channel-div')
+  const aTag = parent.querySelector(`a:first-of-type`)
+  const id = aTag.id
+  const name = aTag.className
+  appendChannel(name,id)
+}
 // form submit
-formSubmit.addEventListener('click', submitForm)
 function submitForm(){
   const name = document.querySelector('.input-name').value
   const id = document.querySelector('.input-id').value
@@ -67,15 +124,16 @@ function submitForm(){
 }
 // add channel to form
 function appendChannel(name, id){
+  const newName = name.match(/[a-z]+/gmi).join('')
   let html = `
     <div class="channel-div">
-      <p class="channel-name-p" id="channel-name-p">${name}</p>
-      <box-icon name='x' class="delete-channel ${'delete'+name}" color="white"></box-icon>
+      <p class="channel-name-p" id="channel-name-p">${newName}</p>
+      <box-icon name='x' class="delete-channel ${'delete'+newName}" color="white"></box-icon>
     </div>
   `
-  idMap.set(name, id)
+  idMap.set(newName, id)
   channelTrackDiv.insertAdjacentHTML("beforeend", html)
-  document.querySelector(`.${'delete'+name}`).addEventListener('click', clickDelete)
+  document.querySelector(`.${'delete'+newName}`).addEventListener('click', clickDelete)
   setLocalStorage()
 }
 // delete a channel from form
@@ -114,6 +172,7 @@ function readyToCall(num){
       return
     }
     console.log(`calling start time api`);  
+    console.log(allVideoObj);
     getStartTime(allVideoObj)
   }
 }
@@ -121,6 +180,7 @@ function readyToCall(num){
 //--------------Function that call the Livestream API on click to get video info---------------//
 
 function fetchVid(value){
+  console.log(value);
   fetch(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${value}&eventType=upcoming&maxResults=3&order=date&type=video&key=${apiKey}`
   ).then(response => {
     if(!response.ok){
@@ -128,6 +188,7 @@ function fetchVid(value){
     }
     return response.json()
   }).then(data => {
+    console.log(data);
     data.items.forEach((video) => {
       pushVideoInfo(video)
     })
@@ -148,10 +209,11 @@ function pushVideoInfo(vObj){
             startTime: 0,
             _dataTimer: 0,
             months: false,
-            vidEnd: false
+            vidEnd: false,
+            beenLive: false
         }
     }
-
+    console.log(getVideoInfo(snippet.title, vObj.id.videoId, snippet.thumbnails.medium.url));
     allVideoObj[vObj.id.videoId] = (getVideoInfo(snippet.title, vObj.id.videoId, snippet.thumbnails.medium.url))
 }
 
@@ -200,6 +262,7 @@ function getStartTime(allVidObj){
     for(const obj in allVidObj){
         videoIdArr.push(`id=${allVidObj[obj].videoId}`)
     }
+    console.log(videoIdArr);
     videoIdArr = videoIdArr.join("&") 
     fetch(`https://youtube.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&${videoIdArr}&key=${apiKey}`
     ).then(response => {
@@ -216,19 +279,19 @@ function getStartTime(allVidObj){
           allVideoObj[vid.id].timeleft = getFirstTime[1]
           addTimetoSort(vid.id, getFirstTime[1])
           //start Clock to update time
-          const clock = setInterval(() => {
-            for(const key in allVideoObj){
-              let timeStart = allVideoObj[key].startTime
-              if(allVideoObj[key].vidEnd)continue
-              const result = countDownToDate(timeStart)
-              let countdownString = result[0];
-              const left = result[1]
-              console.log(countdownString, left);
-              allVideoObj[key]._dataTimer = countdownString
-              allVideoObj[key].timeleft = left
-            }
-            }, 10000);
-      }
+        }
+        const clock = setInterval(() => {
+          for(const key in allVideoObj){
+            let timeStart = allVideoObj[key].startTime
+            if(allVideoObj[key].vidEnd)continue
+            const result = countDownToDate(timeStart)
+            let countdownString = result[0];
+            const left = result[1]
+            console.log(countdownString);
+            allVideoObj[key]._dataTimer = countdownString
+            allVideoObj[key].timeleft = left
+          }
+          }, 10000);
       console.log(allVideoObj);
     }).then(() => {
       startSort()
@@ -242,24 +305,26 @@ function startSort(){
     let video = allVideoObj[vidID]
     let isLive = false
     appendVideo(video.title, video.videoId, video.thumbnailURL, video._dataTimer, upcomingDiv)
+  })
     let liveTrack = setInterval(()=> {
+      console.log(`new logs`);
       for(const key in allVideoObj){
         let dataTimer = allVideoObj[key]._dataTimer
         let video = allVideoObj[key]
         if(video.months === true) continue
         if(video.vidEnd)continue
         if(dataTimer === `Live Now`){
-          if(!isLive){
-            isLive = true
+          if(!video.beenLive){
+            video.beenLive = true
             let deleteVid = document.getElementById(`${video.videoId}`).closest(`.video`)
             upcomingDiv.removeChild(deleteVid)
-            if(allVideoObj[video.videoId].timeleft > -20972950){
+            if(allVideoObj[video.videoId].timeleft > -10972950){
               appendVideo(video.title, video.videoId, video.thumbnailURL, video._dataTimer, liveDiv)
               document.getElementById(`${video.videoId}`).textContent = `Live Now`
             }
           }
           // if stream have been live for more than 5 hours
-          if(allVideoObj[video.videoId].timeleft < -20972950 &&  !allVideoObj[video.videoId].vidEnd){
+          if(allVideoObj[video.videoId].timeleft < -10972950 &&  !allVideoObj[video.videoId].vidEnd){
             let targetVid = document.getElementById(`${video.videoId}`).closest('.video');
             targetVid.remove()
             allVideoObj[video.videoId].vidEnd = true
@@ -275,6 +340,5 @@ function startSort(){
           vidDiv.textContent = video._dataTimer
         }
       }
-    }, 5000)
-  })
+    }, 10000)
 }
