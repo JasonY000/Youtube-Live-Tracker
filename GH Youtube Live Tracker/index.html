@@ -16,14 +16,29 @@
             <h2>Add channel ID to track</h2>
             <box-icon name='x' class="form-close" color="white"></box-icon>
         </div>
-        <p>To get channelID go to the channel page, right click and select 'view page source', look for 'channel_id=' and copy the string</p>  
+        <p class="option">Option #1: Channel id manual input</p>
+        <p>Go to the target youtube channel main page, right click and select "view page source", look for "channel_id=" and copy the following charaters.</p>
+        <p>It will look somthing like this <span class="bold">"channel_id=UCvzPLP9oQwU--Y4r9id_unA"</span> and you would want to copy <span class="bold">"UCvzPLP9oQwU--Y4r9id_unA"</span></p>
+        <p class="option">Option #2: Channel name lookUp</p>
+        <p>Type in channel name and click "search", click "view" to go to channel page, press "add" to track</p>
         <div class="input-row row-1">
+          <p>1</p>
           <input type="text" id="inputChannelName" placeholder="Channel Name" class="input-name">
           <input type="text" id="inputChannelID" placeholder="Channel ID" class="input-id">
           <button type="submit" class="form-submit">Submit</button>
-        
         </div>
-       
+       <div class="input-row row-1 lookup-div">
+        <p>2</p>
+        <input type="text" id="lookupChannelName" placeholder="Channel Name Lookup" class="input-lookup">
+        <button type="submit" class="lookup-clear">clear fields</button>
+        <button type="submit" class="lookup-submit">search</button>
+       </div>
+       <div>
+        <p>Search results</p>
+        <div class="search-div">
+        </div>  
+       </div>
+        <h2>Channel List</h2>
         <div class="channel-track-div">
         </div>    
       </div>
