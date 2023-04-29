@@ -16,6 +16,9 @@ body{
     padding: 0;
     margin: 0;
 }
+.bold{
+    font-weight: bold;
+}
 /* -------------------------POP UP STUFF--------------------- */
 .popup {
     position: fixed;
@@ -30,6 +33,17 @@ body{
     color: white;
     z-index: 9999;
     display: none;
+    width: 40%;
+}
+.popup > p{
+    width: 100%;
+    margin: 0;
+    margin-bottom: 3px;
+    word-wrap:break-word;
+}
+.option{
+    font-weight: bold;
+    padding-bottom: 10px;
 }
 .overlay {
     position: fixed;
@@ -61,15 +75,15 @@ body{
 .input-row > input{
     width: 40%;
 }
-.row-1 {
-    justify-content: space-around
-}
 
-.channel-track-div{
+.channel-track-div, .search-div{
     height: 300px;
     background-color: rgb(107, 29, 29);
     border-radius: 5px;
     overflow-x: hidden;
+}
+.search-div{
+    height: 100px;
 }
 .channel-track-div::-webkit-scrollbar {
     width: 0.25rem;
@@ -86,12 +100,20 @@ body{
     justify-content: space-between;
     padding: 0 30px;
 }
+.channel-div > .view{
+    margin-left: auto;
+    margin-right: 5px;
+}
 .channel-div:nth-child(even) {
     background-color: rgb(107, 29, 29)
 }
   
 .channel-div:nth-child(odd){
     background-color: rgb(68, 17, 17)
+}
+.lookup-div{
+    display: flex;
+    justify-content: space-between;
 }
 /* -------------------------MAIN PAGE STUFF--------------------- */
 .btn-add-div, .btn-refresh{
