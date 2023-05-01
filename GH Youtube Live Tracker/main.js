@@ -81,12 +81,6 @@ function lookupAPI(){
     return response.json()
   }).then(data => {
     const channels = manageLookup(data)
-    let html = `
-    <div class="channel-div">
-      <p class="channel-name-p" id="channel-name-p">${name}</p>
-      <button class="search-add" id=${name}>submit</button>
-    </div>
-    `
     for(const [key,value] of Object.entries(channels)){
       searchDiv.insertAdjacentHTML("beforeend", `
       <div class="channel-div">
