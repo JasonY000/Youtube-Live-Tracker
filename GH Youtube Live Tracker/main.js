@@ -297,7 +297,6 @@ function startSort(){
   sortArray.forEach(time => {
     let vidID = sortObj[time]
     let video = allVideoObj[vidID]
-    let isLive = false
     appendVideo(video.title, video.videoId, video.thumbnailURL, video._dataTimer, upcomingDiv)
   })
     let liveTrack = setInterval(()=> {
