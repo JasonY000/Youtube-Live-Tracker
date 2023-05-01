@@ -247,7 +247,7 @@ let stopSort = false
 // it uses the first recorded start time as a key and the video id as a value.
 // the start time is also pushed into an array, which will get sorted from smallest to biggest.
 // after sorting, it uses the start time to access the sortObj to get the video id, then it uses the id to get the video obj from allVideoObj.
-//
+// line 302
 function addTimetoSort(id, time){
   if(!Object.values(sortObj).includes(id)){
     sortObj[time] = id
