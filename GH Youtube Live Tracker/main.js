@@ -240,10 +240,14 @@ function countDownToDate(start) {
   }
 
 //------------------------Get LiveStream Start Time------------------------//
-// uses the time to sort, afterwards uses the time as key to access the videoID
+// using video start time to sort
 let sortObj = {}
 let sortArray = []
 let stopSort = false
+// it uses the first recorded start time as a key and the video id as a value.
+// the start time is also pushed into an array, which will get sorted from smallest to biggest.
+// after sorting, it uses the start time to access the sortObj to get the video id, then it uses the id to get the video obj from allVideoObj.
+//
 function addTimetoSort(id, time){
   if(!Object.values(sortObj).includes(id)){
     sortObj[time] = id
@@ -253,6 +257,7 @@ function addTimetoSort(id, time){
 //Gets called when all first api call has returned, refer to readyToCall function
 function getStartTime(allVidObj){
     let videoIdArr=[]
+    // groups all the videoID then join them into a string and use it in the fetch
     for(const obj in allVidObj){
         videoIdArr.push(`id=${allVidObj[obj].videoId}`)
     }
@@ -265,6 +270,7 @@ function getStartTime(allVidObj){
       }
       return response.json()
     }).then(data => {
+        // for each video, get the starting time and calculate the countdown time
         for(const vid of data.items){
           allVideoObj[vid.id].startTime = vid.liveStreamingDetails.scheduledStartTime
           const start = allVideoObj[vid.id].startTime
