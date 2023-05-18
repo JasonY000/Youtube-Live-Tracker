@@ -65,7 +65,10 @@ function reloadMainPage(){
 // clear lookup
 clearSearch.addEventListener('click', searchClear)
 function searchClear(){
-  searchDiv.innerHTML =""
+  const searchResultDiv = document.querySelector('.search-div')
+  while (searchResultDiv.firstChild) {
+    searchResultDiv.removeChild(searchResultDiv.firstChild);
+  }
   lookupInput.value =''
 }
 //channel Lookup
